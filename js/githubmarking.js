@@ -15,7 +15,7 @@ var viewModel={
     selectedSearchType : ko.observable('User'),
     user: ko.observable(),
     team: ko.observable(),
-    repo: ko.observable(),
+    repo: ko.observableArray([]),
 
     search: function(){
         if (this.searchTerm().length>3)
@@ -32,12 +32,53 @@ var viewModel={
 };
 
 $(function(){
+    infuser.defaults.templateSuffix = ".tmpl.html";
+    infuser.defaults.templateUrl = "templates";
     ko.applyBindings(viewModel);
 });
 
 viewModel.selectedSearchType.subscribe(function(newValue) {
     carryOutGitHubSearch(newValue,viewModel.searchTerm());
 });
+
+function getRepos()
+{
+    clearTimeout(timeout);
+    timeout=setTimeout(function()
+    {
+        retrieveUsersGitHubRepos(viewModel.searchTerm());
+    },500);
+}
+
+function retrieveUsersGitHubRepos(searchTerm)
+{
+    if(viewModel.searchTerm()!=null){
+        //console.log(searchType+" "+searchTerm);
+
+        ///users/:user/repos
+        var url=baseURL+userURL+searchTerm+"/repos";
+        //var url="https://api.github.com?callback=foo&Origin=http://www.scottishcodemonkey.com";
+        /*
+         $.getJSON(url, function(data){
+
+         if(data.stat == "ok") {
+         //console.log(data);
+         // Map the results
+         //ko.mapping.fromJS(data.user, photoMappingOptions, viewModel.user);
+         }
+         });*/
+        $.ajax({
+            type: 'GET',
+            url: url,
+            async: false,
+            jsonpCallback: 'listReposCallback',
+            contentType: "application/json",
+            dataType: 'jsonp',
+            success: null,
+            error:null
+        });
+    }
+}
 
 function carryOutGitHubSearch(searchType,searchTerm)
 {
@@ -67,11 +108,31 @@ function carryOutGitHubSearch(searchType,searchTerm)
     }
 }
 
+function Repo(data)
+{
+    var self=this;
+    this.name=ko.observable(data.name);
+
+}
+
 function searchCallback(response) {
     var meta = response.meta;
     viewModel.user=ko.mapping.fromJS(response.data);
     console.log(meta);
     console.log(response.data);
-    console.log(viewModel.user.email());
+    ko.applyBindings(viewModel);
 }
 
+//http://jsfiddle.net/rniemeyer/tD4pH/
+function listReposCallback(response)
+{
+    var meta = response.meta;
+    //viewModel.repo=ko.mapping.fromJS(response.data);
+    console.log(meta);
+    ko.utils.arrayForEach(response.data, function(model) {
+        self.viewModel.repo.push(new Repo(model));
+
+    });
+    ko.applyBindings(viewModel);
+    console.log(viewModel.repo);
+}

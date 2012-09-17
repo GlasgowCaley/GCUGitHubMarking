@@ -7,7 +7,7 @@
 <script type="text/javascript" src="js/lib/jquery-1.8.1.min.js"></script>
 <script type='text/javascript' src='js/lib/knockout-2.1.0.js'></script>
 <script type='text/javascript' src='js/lib/knockout.mapping-latest.js'></script>
-<script type='text/javascript' src='js/lib/oExternalTemplateEngine_all.min.js'></script>k
+<script type='text/javascript' src='js/lib/koExternalTemplateEngine_all.min.js'></script>k
 <script type="text/javascript" src="js/githubmarking.js"></script>
 <div id="searchUI">
     <fieldset>
@@ -16,5 +16,7 @@
                data-bind="value: searchTerm, valueUpdate: 'afterkeydown', event: { keyup: search }"/>
     </fieldset>
 </div>
+<div data-bind="template: { name: 'user-template', data: user }"></div>
+<div data-bind="template: { name: 'repo-template', data: repo }"></div>
 </body>
 </html>
