@@ -75,7 +75,8 @@ function retrieveUsersGitHubRepos(searchTerm)
             contentType: "application/json",
             dataType: 'jsonp',
             success: null,
-            error:null
+            error:null,
+            traditional:true
         });
     }
 }
@@ -108,13 +109,6 @@ function carryOutGitHubSearch(searchType,searchTerm)
     }
 }
 
-function Repo(data)
-{
-    var self=this;
-    this.name=ko.observable(data.name);
-
-}
-
 function searchCallback(response) {
     var meta = response.meta;
     viewModel.user=ko.mapping.fromJS(response.data);
@@ -127,12 +121,8 @@ function searchCallback(response) {
 function listReposCallback(response)
 {
     var meta = response.meta;
-    //viewModel.repo=ko.mapping.fromJS(response.data);
+    viewModel.repo=ko.mapping.fromJS(response.data);
     console.log(meta);
-    ko.utils.arrayForEach(response.data, function(model) {
-        self.viewModel.repo.push(new Repo(model));
-
-    });
     ko.applyBindings(viewModel);
-    console.log(viewModel.repo);
+    console.log(viewModel.repo()[0].name());
 }
