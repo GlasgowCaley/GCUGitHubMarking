@@ -8,6 +8,7 @@
 var timeout=0;
 var baseURL="https://api.github.com/";
 var userURL="users/"
+var reposURl="repos"
 
 function ViewModel(){
     var self = this;
@@ -18,6 +19,8 @@ function ViewModel(){
     self.user=ko.observable();
     self.team=ko.observable();
     self.repo=ko.observableArray([]);
+    self.commits=ko.observableArray([]);
+
 
     self.search=function(){
         if (self.searchTerm().length>3)
@@ -38,6 +41,7 @@ function ViewModel(){
         console.log("Selected Search "+self.selectedSearchType());
         console.log("User "+self.user.name());
         //iterate through repos
+        //iterate through commits
     }
 
 };
@@ -52,7 +56,14 @@ $(function(){
     });
 });
 
-
+function getCommits()
+{
+    clearTimeout(timeout);
+    timeout=setTimeout(function()
+    {
+        retrieveReposCommits("gp2");
+    },500);
+}
 
 function getRepos()
 {
@@ -61,25 +72,33 @@ function getRepos()
     {
         retrieveUsersGitHubRepos(window.vm.searchTerm());
     },500);
+    //getCommits();
+}
+
+function retrieveReposCommits(repoName)
+{
+    console.log("Get Repos "+repoName);
+    if(window.vm.searchTerm()!=null){
+        var url=baseURL+reposURl+window.vm.user().name+"/"+repoName+"/commits";
+        $.ajax({
+            type: 'GET',
+            url: url,
+            async: false,
+            jsonpCallback: 'listCommitsCallback',
+            contentType: "application/json",
+            dataType: 'jsonp',
+            success: null,
+            error:null,
+            traditional:true,
+            crossDomain:true
+        });
+    }
 }
 
 function retrieveUsersGitHubRepos(searchTerm)
 {
     if(window.vm.searchTerm()!=null){
-        //console.log(searchType+" "+searchTerm);
-
-        ///users/:user/repos
         var url=baseURL+userURL+searchTerm+"/repos";
-        //var url="https://api.github.com?callback=foo&Origin=http://www.scottishcodemonkey.com";
-        /*
-         $.getJSON(url, function(data){
-
-         if(data.stat == "ok") {
-         //console.log(data);
-         // Map the results
-         //ko.mapping.fromJS(data.user, photoMappingOptions, viewModel.user);
-         }
-         });*/
         $.ajax({
             type: 'GET',
             url: url,
@@ -100,16 +119,6 @@ function carryOutGitHubSearch(searchType,searchTerm)
     if(window.vm.searchTerm()!=null){
         console.log(searchType+" "+searchTerm);
         var url=baseURL+userURL+searchTerm;
-        //var url="https://api.github.com?callback=foo&Origin=http://www.scottishcodemonkey.com";
-        /*
-        $.getJSON(url, function(data){
-
-            if(data.stat == "ok") {
-                //console.log(data);
-                // Map the results
-                //ko.mapping.fromJS(data.user, photoMappingOptions, viewModel.user);
-            }
-        });*/
         $.ajax({
             type: 'GET',
             url: url,
@@ -128,8 +137,6 @@ function carryOutGitHubSearch(searchType,searchTerm)
 function searchCallback(response) {
     var meta = response.meta;
     window.vm.user=ko.mapping.fromJS(response.data);
-    //console.log(meta);
-    //console.log(response.data);
     ko.applyBindings(window.vm);
     window.vm.logModel();
 }
@@ -139,7 +146,14 @@ function listReposCallback(response)
 {
     var meta = response.meta;
     window.vm.repo=ko.mapping.fromJS(response.data);
-    //console.log(meta);
     ko.applyBindings(window.vm);
     window.vm.logModel();
+}
+
+function listCommitsCallback(response)
+{
+    var meta=response.meta;
+    window.vm.commits=ko.mapping.fromJS(response.data);
+    ko.applyBindings(window.vm);
+    windows.vm.logModel();
 }
